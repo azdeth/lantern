@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lantern</title>
+<meta name="description" content="Read light novels or have them read aloud, chapter by chapter.">
+<meta name="theme-color" content="#14162a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lantern">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.5 3.5h11v17l-5.5-4-5.5 4z"/></symbol>
+    <symbol id="i-toc" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/></symbol>
+    <symbol id="i-type" viewBox="0 0 24 24"><path d="M3 19l5-13 5 13M4.8 14.5h6.4"/><path d="M15 12.5a3 3 0 0 1 6 0V19M21 15.5c-4 0-6 .8-6 2s1 1.5 2 1.5c2 0 4-1.3 4-3.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 4.8v14.4a.8.8 0 0 0 1.2.7l11.3-7.2a.8.8 0 0 0 0-1.4L9.2 4.1A.8.8 0 0 0 8 4.8z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4" height="15" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="4.5" width="4" height="15" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 24 24"><path d="M18 6.2v11.6a.7.7 0 0 1-1.1.6L9 12.6a.7.7 0 0 1 0-1.2l7.9-5.8a.7.7 0 0 1 1.1.6z" fill="currentColor" stroke="none"/><path d="M6 6v12"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 6.2v11.6a.7.7 0 0 0 1.1.6l7.9-5.8a.7.7 0 0 0 0-1.2L7.1 5.6A.7.7 0 0 0 6 6.2z" fill="currentColor" stroke="none"/><path d="M18 6v12"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.6A7.5 7.5 0 0 1 9.4 4.5a7.5 7.5 0 1 0 10.1 10.1z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M10 11v6M14 11v6M6.5 7l.9 12.2a1 1 0 0 0 1 .8h7.2a1 1 0 0 0 1-.8L17.5 7M9.5 7V4.5h5V7"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 20h14"/></symbol>
+    <symbol id="i-lantern" viewBox="0 0 24 24"><path d="M9.5 3.5h5M12 3.5v2"/><path d="M8 9a4 4 0 0 1 8 0v6.5a4 4 0 0 1-8 0z"/><path d="M12 10.5c1.3 1.3 1.6 2.6 0 4.4-1.6-1.8-1.3-3.1 0-4.4z" fill="currentColor"/><path d="M9.5 21.5h5"/></symbol>
+  </defs>
+</svg>
+
+<section id="library" class="view">
+  <header class="bar lib-bar">
+    <h1 class="brand"><svg class="i"><use href="#i-lantern"/></svg>Lantern</h1>
+    <div class="bar-actions">
+      <button id="importBtn" class="btn primary"><svg class="i"><use href="#i-plus"/></svg>Add book</button>
+      <button id="libSettingsBtn" class="icon-btn" aria-label="Settings"><svg class="i"><use href="#i-gear"/></svg></button>
+    </div>
+  </header>
+  <input type="file" id="fileInput" accept=".epub,application/epub+zip" multiple hidden>
+  <main class="lib-main">
+    <div id="shelf" class="shelf"></div>
+    <div id="emptyShelf" class="empty" hidden>
+      <svg class="i empty-mark"><use href="#i-lantern"/></svg>
+      <h2>Your shelf is empty</h2>
+      <p>Drop an <b>.epub</b> anywhere on this page, or tap <b>Add book</b>. Books stay on this device and work offline.</p>
+      <button id="sampleBtn" class="btn">Open the sample book</button>
+    </div>
+  </main>
+  <div id="dropHint" class="drop-hint" hidden>Drop to add to your shelf</div>
+</section>
+
+<section id="reader" class="view" hidden>
+  <header class="bar reader-top">
+    <button id="backBtn" class="icon-btn" aria-label="Back to library"><svg class="i"><use href="#i-back"/></svg></button>
+    <div class="titles">
+      <div id="rBook" class="r-book"></div>
+      <div id="rChapter" class="r-chapter"></div>
+    </div>
+    <button id="searchBtn" class="icon-btn" aria-label="Search in book"><svg class="i"><use href="#i-search"/></svg></button>
+    <button id="bookmarkBtn" class="icon-btn" aria-label="Bookmark this page" aria-pressed="false"><svg class="i"><use href="#i-bookmark"/></svg></button>
+    <button id="tocBtn" class="icon-btn" aria-label="Contents and bookmarks"><svg class="i"><use href="#i-toc"/></svg></button>
+    <button id="displayBtn" class="icon-btn" aria-label="Display settings"><svg class="i"><use href="#i-type"/></svg></button>
+  </header>
+
+  <div id="viewport" class="viewport">
+    <article id="chapter" class="chapter"></article>
+    <nav id="chapNav" class="chap-nav">
+      <button id="prevChap" class="btn ghost">Previous chapter</button>
+      <button id="nextChap" class="btn">Next chapter</button>
+    </nav>
+  </div>
+
+  <footer class="reader-bottom">
+    <div class="progress-row">
+      <span id="chapPos" class="num"></span>
+      <input type="range" id="seek" min="0" max="0" value="0" aria-label="Position in chapter">
+      <span id="bookPct" class="num"></span>
+    </div>
+    <div class="player">
+      <button id="voiceBtn" class="chip" aria-label="Voice settings"><svg class="i"><use href="#i-wave"/></svg><span id="voiceName">Device voice</span></button>
+      <div class="transport">
+        <button id="prevBtn" class="icon-btn" aria-label="Previous sentence"><svg class="i"><use href="#i-prev"/></svg></button>
+        <button id="playBtn" class="play-btn" aria-label="Read aloud"><svg class="i"><use href="#i-play"/></svg></button>
+        <button id="nextBtn" class="icon-btn" aria-label="Next sentence"><svg class="i"><use href="#i-next"/></svg></button>
+      </div>
+      <div class="player-right">
+        <button id="speedBtn" class="chip num" aria-label="Reading speed">1.0×</button>
+        <button id="sleepBtn" class="chip" aria-label="Sleep timer"><svg class="i"><use href="#i-moon"/></svg><span id="sleepLabel"></span></button>
+      </div>
+    </div>
+    <div id="status" class="status" hidden></div>
+  </footer>
+  <button id="readHere" class="read-here" hidden><svg class="i"><use href="#i-play"/></svg>Read from here</button>
+</section>
+
+<dialog id="sheet" class="sheet" aria-labelledby="sheetTitle">
+  <header class="sheet-head">
+    <h2 id="sheetTitle"></h2>
+    <button id="sheetClose" class="icon-btn" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+  </header>
+  <div id="sheetBody" class="sheet-body"></div>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
