@@ -65,10 +65,16 @@ export function pcmToWav(parts) {
 async function qwen(text, voice, S) {
   const q = S.qwen;
   if (!q.key) throw new Error('Add your Qwen (DashScope) API key in Voice settings.');
+  // Qwen-Audio (and CosyVoice) models live on the SpeechSynthesizer endpoint; Qwen3-TTS on
+  // multimodal-generation. Wrong pairing -> "url error, please check url".
+  const audioApi = /^(qwen-audio|cosyvoice)/.test(q.model);
   const input = { text, voice };
-  if (q.lang && q.lang !== 'Auto') input.language_type = q.lang;
-  if (S.instruction.trim() && q.model.startsWith('qwen-audio')) input.instruction = S.instruction.trim();
-  const r = await fetch(`${q.base}/api/v1/services/aigc/multimodal-generation/generation`, {
+  if (audioApi) {
+    Object.assign(input, { format: 'wav', sample_rate: 24000 });
+    if (S.instruction.trim()) input.instruction = S.instruction.trim();
+  } else if (q.lang && q.lang !== 'Auto') input.language_type = q.lang;
+  const path = audioApi ? '/api/v1/services/audio/tts/SpeechSynthesizer' : '/api/v1/services/aigc/multimodal-generation/generation';
+  const r = await fetch(q.base + path, {
     method: 'POST',
     headers: { Authorization: `Bearer ${q.key}`, 'Content-Type': 'application/json', 'X-DashScope-SSE': 'enable' },
     body: JSON.stringify({ model: q.model, input }),
@@ -94,7 +100,10 @@ async function qwen(text, voice, S) {
   }
   handle(buf.trim());
   if (parts.length) return pcmToWav(parts);
-  if (url) return (await fetch(url)).blob();
+  if (url) {
+    try { return await (await fetch(url)).blob(); }
+    catch { throw new Error('Qwen made the audio but the browser could not download it. Please try again.'); }
+  }
   throw new Error('Qwen returned no audio for this text.');
 }
 

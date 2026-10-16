@@ -1,5 +1,5 @@
 // Network-first for the app's own files (updates show up at once), cache when offline.
-const V = 'lantern-v1';
+const V = 'lantern-v2';
 const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'db.js', 'epub.js', 'text.js', 'tts.js',
   'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'sample.epub'];
 

@@ -691,7 +691,7 @@ function voiceTab(el) {
         <p class="hint">3.0 TTS Plus is the most expressive; 3.1 TTS Flash is the newest, fastest and has native English voices.</p></div>
       ${voiceInput('v1', 'Narrator voice', voices, cfg.voice)}
       ${S.dialogueVoice ? voiceInput('v2', 'Dialogue voice', voices, cfg.voice2) : ''}
-      <div class="field"><label for="qLang">Language hint</label><select id="qLang">${['Auto', 'English', 'Japanese', 'Chinese', 'Korean', 'French', 'German', 'Spanish', 'Italian', 'Portuguese', 'Russian'].map(l => opt(l, l, cfg.lang)).join('')}</select></div>`;
+      <div class="field" ${cfg.model.startsWith('qwen3') ? '' : 'hidden'}><label for="qLang">Language hint</label><select id="qLang">${['Auto', 'English', 'Japanese', 'Chinese', 'Korean', 'French', 'German', 'Spanish', 'Italian', 'Portuguese', 'Russian'].map(l => opt(l, l, cfg.lang)).join('')}</select></div>`;
   } else if (p === 'openai') {
     const list = OPENAI_VOICES.map(v => [v, v]);
     specific = `

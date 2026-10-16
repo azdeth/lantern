@@ -16,22 +16,38 @@ function tonePcm(seconds, freq) {
   return b;
 }
 
+function wavHeader() { // streaming WAV: sizes unknown (0xFFFFFFFF)
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0); h.writeUInt32LE(0xFFFFFFFF, 4); h.write('WAVEfmt ', 8); h.writeUInt32LE(16, 16);
+  h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22); h.writeUInt32LE(24000, 24); h.writeUInt32LE(48000, 28);
+  h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34); h.write('data', 36); h.writeUInt32LE(0xFFFFFFFF, 40);
+  return h;
+}
+
 http.createServer(async (req, res) => {
   const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization,content-type,x-dashscope-sse' };
   if (req.url.startsWith('/mock-qwen')) {
     if (req.method === 'OPTIONS') { res.writeHead(200, cors); return res.end(); }
     let body = '';
     for await (const c of req) body += c;
-    const { input } = JSON.parse(body);
+    const { model, input } = JSON.parse(body);
     if (req.headers.authorization !== 'Bearer test-key') {
       res.writeHead(401, { ...cors, 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ code: 'InvalidApiKey', message: 'Invalid API-key provided.' }));
     }
-    console.log('TTS', input.voice, JSON.stringify(input.text).slice(0, 70), input.instruction ? '+instr' : '');
+    // like DashScope: Qwen-Audio/CosyVoice only on SpeechSynthesizer, Qwen3-TTS only on multimodal-generation
+    const speechApi = req.url.includes('/audio/tts/SpeechSynthesizer');
+    if (speechApi !== /^(qwen-audio|cosyvoice)/.test(model)) {
+      res.writeHead(400, { ...cors, 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ code: 'InvalidParameter', message: 'url error, please check url！' }));
+    }
+    console.log('TTS', model, input.voice, JSON.stringify(input.text).slice(0, 70), input.instruction ? '+instr' : '');
     res.writeHead(200, { ...cors, 'Content-Type': 'text/event-stream' });
     const pcm = tonePcm(Math.min(4, 0.4 + input.text.length / 40), input.voice.includes('Eric') ? 330 : 520);
     for (let o = 0; o < pcm.length; o += 9600) {
-      res.write(`id:1\nevent:result\ndata:${JSON.stringify({ output: { finish_reason: null, audio: { data: pcm.subarray(o, o + 9600).toString('base64') } } })}\n\n`);
+      let piece = pcm.subarray(o, o + 9600);
+      if (o === 0 && speechApi) piece = Buffer.concat([wavHeader(), piece]); // format: wav streams a header first
+      res.write(`id:1\nevent:result\ndata:${JSON.stringify({ output: { finish_reason: null, audio: { data: piece.toString('base64') } } })}\n\n`);
       await new Promise(r => setTimeout(r, 30));
     }
     res.end(`id:2\nevent:result\ndata:${JSON.stringify({ output: { finish_reason: 'stop', audio: { url: '', data: '' } }, usage: { characters: input.text.length } })}\n\n`);
